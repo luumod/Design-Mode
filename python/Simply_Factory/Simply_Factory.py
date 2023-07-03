@@ -12,7 +12,7 @@ class Type(Enum):
     Rocket = 2
 
 
-class AbstractProduct(object):
+class AbstractProduct(metaclass=ABCMeta):
     def __init__(self):
         pass
 
