@@ -1,5 +1,6 @@
 ﻿#include <QCoreApplication>
 #include <iostream>
+#include <vld.h>
 
 //抽象产品类
 template <typename T>
@@ -95,7 +96,6 @@ int main(int argc, char *argv[])
     qInfo()<<pro->getResult();
     pro.reset( AbstractFactory<int>::create(5,'/',2));
     qInfo()<<pro->getResult();
-
 
     return a.exec();
 }
