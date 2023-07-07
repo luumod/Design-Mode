@@ -1,6 +1,7 @@
 ﻿#include <QCoreApplication>
 #include <iostream>
-
+  
+  
 //抽象产品类
 class AbstractProduct{
 public:
