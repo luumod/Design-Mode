@@ -1,7 +1,7 @@
 public class Main {
     public static void main(String[] args) {
         Director director = new Director();
-        AbstractBuilder builder = new LenovoComputer("I5处理器","三星125");
+        AbstractBuilder builder = new LenovoComputer();
         director.makeComputer(builder);
         Computer Lenovo = builder.getProduct();
         Lenovo.showInfo();
