@@ -2,111 +2,281 @@
 #include <string>
 #include <vector>
 #include <vld.h>
-/*
-* 抽象产品
-具体产品电脑：鼠标，键盘，显示器，主机
 
-*/
-
-//1. 抽象产品类
-class AbstractProduct {
+//具体产品：电脑
+class Computer {
 public:
-	virtual ~AbstractProduct() {}
-	virtual void setMouse(const std::string& mouse) = 0;
-	virtual void setKeyboard(const std::string& keyboard) = 0;
-	virtual void setDisplay(const std::string& display) = 0;
-	virtual void setHost(const std::string& host) = 0;
-	virtual void showInfo() = 0;
-};
-//2. 具体产品
-class Computer :public AbstractProduct {
-public:
-	virtual ~Computer() {}
+	Computer(const std::string& cpu, const std::string& ram) {
+		this->cpu = cpu;
+		this->ram = ram;
+	}
+	~Computer() {}
 	void setMouse(const std::string& mouse) {
-		m_vec.push_back(mouse);
+		this->mouse = mouse;
 	}
 	void setKeyboard(const std::string& keyboard) {
-		m_vec.push_back(keyboard);
+		this->keyboard = keyboard;
 	}
 	void setDisplay(const std::string& display) {
-		m_vec.push_back(display);
+		this->display = display;
 	}
 	void setHost(const std::string& host) {
-		m_vec.push_back(host);
+		this->host = host;
 	}
 	void showInfo() {
-		std::cout << "电脑组装信息: \n";
-		for (auto& x : m_vec) {
-			std::cout << x << ' ';
+		std::cout << "电脑信息: \n";
+		std::cout << cpu << " " << ram << " " << mouse << " " << keyboard << " " << display << " " << host << '\n';
+	}
+protected:
+	std::string cpu, ram, mouse, keyboard, display, host;
+};
+
+
+//抽象建造者：创建某个品牌的电脑， 并且需要具有一个返回当前产品的方法
+class AbstractComputerBuilder {
+public:
+	AbstractComputerBuilder(const std::string& cpu, const std::string& ram)
+		:computer(new Computer(cpu, ram)) {}
+	virtual ~AbstractComputerBuilder() {}
+	virtual void setMouse() = 0;
+	virtual void setKeyboard() = 0;
+	virtual void setDisplay() = 0;
+	virtual void setHost() = 0; 
+
+	Computer* getProduct() {
+		return computer;
+	}
+protected:
+	Computer* computer;
+};
+
+
+//2. 具体建造者: 建造苹果电脑
+class MacComputerBuilder :public AbstractComputerBuilder {
+public:
+	using AbstractComputerBuilder::AbstractComputerBuilder;
+	~MacComputerBuilder() {
+		if (computer) {
+			delete computer;
+			computer = nullptr;
 		}
-		std::cout << '\n';
 	}
-protected:
-	std::vector<std::string> m_vec;
+	void setMouse() {
+		computer->setMouse("苹果鼠标");
+	}
+	void setKeyboard() {
+		computer->setKeyboard("苹果键盘");
+	}
+	void setDisplay() {
+		computer->setDisplay("苹果显示器");
+	}
+	void setHost() {
+		computer->setHost("苹果主机");
+	}
 };
 
-//3. 抽象建造者
-class AbstractBuilder {
+//2. 具体建造者: 建造联想电脑 
+class LenovoComputerBuilder :public AbstractComputerBuilder {
 public:
-	AbstractBuilder() :m_pro(new Computer) {}
-	//抽象建造过程
-	virtual void buildMouse(const std::string& mouse) = 0;
-	virtual void buildKeyboard(const std::string& keyboard) = 0;
-	virtual void buildDisplay(const std::string& display) = 0;
-	virtual void buildHost(const std::string& host) = 0;
-	//用于指挥者返回建造产品
-	AbstractProduct* product() {
-		return m_pro;
+	using AbstractComputerBuilder::AbstractComputerBuilder;
+	~LenovoComputerBuilder() {
+		if (computer) {
+			delete computer;
+			computer = nullptr;
+		}
 	}
-protected:
-	AbstractProduct* m_pro = nullptr;
-};
-
-//4. 具体建造者
-class Worker :public AbstractBuilder {
-public:
-	void buildMouse(const std::string& mouse)override {
-		m_pro->setMouse(mouse);
+	void setMouse() {
+		computer->setMouse("联想鼠标");
 	}
-	void buildKeyboard(const std::string& keyboard)override {
-		m_pro->setKeyboard(keyboard);
+	void setKeyboard() {
+		computer->setKeyboard("联想键盘");
 	}
-	void buildDisplay(const std::string& display)override {
-		m_pro->setDisplay(display);
+	void setDisplay() {
+		computer->setDisplay("联想显示器");
 	}
-	void buildHost(const std::string& host)override {
-		m_pro->setHost(host);
+	void setHost() {
+		computer->setHost("联想主机");
 	}
 };
 
 //5. 指挥者
 class Director {
 public:
-	Director(AbstractBuilder* worker)
-		:m_worker(worker) {}
-	AbstractProduct* createProduct(const std::string& mouse,
-		const std::string& keyboard, 
-		const std::string& display,
-		const std::string& host) {
-		m_worker->buildMouse(mouse);
-		m_worker->buildKeyboard(keyboard);
-		m_worker->buildDisplay(display);
-		m_worker->buildHost(host);
+	Director() {}
+	Computer* createProduct(AbstractComputerBuilder* computer_worker){
+		//const std::string& mouse= "普通鼠标",
+		//const std::string& display="普通显示器",
+		//const std::string& keyboard="普通键盘",
+		//const std::string& host="普通主机"
+		computer_worker->setMouse();
+		computer_worker->setDisplay();
+		computer_worker->setKeyboard();
+		computer_worker->setHost();
 		//建造完成后返回产品
-		return m_worker->product();
+		return computer_worker->getProduct();
 	}
-private:
-	AbstractBuilder* m_worker = nullptr;
 };
 int main() {
-	//创建抽象建造者
-	std::unique_ptr<AbstractBuilder> builder(new Worker());
-	//创建指挥者
-	std::unique_ptr<Director> pD(new Director(builder.get()));
-	//指挥者创建产品
-	std::unique_ptr<AbstractProduct> pro(pD->createProduct("雷蛇鼠标", "罗技键盘",
-		"联想显示器", "外星人主机"));
-	pro->showInfo();
-	
+	//use smart pointer
+	/*std::unique_ptr<AbstractComputerBuilder> builder(new LenovoComputerBuilder("I5处理器", "lemovoRam"));
+	std::unique_ptr<Director> dmain(new Director);
+	dmain->createProduct(builder.get())->showInfo();
+
+	builder.reset(new MacComputerBuilder("I7处理器", "海力士222"));
+	Computer* mac = dmain->createProduct(builder.get());
+	mac->showInfo();*/
+
+	AbstractComputerBuilder* builder = new LenovoComputerBuilder("I5处理器", "lemovoRam");
+	Director* director = new Director();
+	Computer* mac = director->createProduct(builder);
+	mac->showInfo();
+
+	delete builder;
+	builder = nullptr;
+	delete director;
+	director = nullptr;
 	return 0;
 }
+
+
+//方式二：
+
+//#include <iostream>
+//#include <string>
+//#include <vector>
+//#include <vld.h>
+//
+////具体产品：电脑
+//class Computer {
+//public:
+//	Computer(const std::string& cpu, const std::string& ram) {
+//		this->cpu = cpu;
+//		this->ram = ram;
+//	}
+//	~Computer() {}
+//	void setMouse(const std::string& mouse) {
+//		this->mouse = mouse;
+//	}
+//	void setKeyboard(const std::string& keyboard) {
+//		this->keyboard = keyboard;
+//	}
+//	void setDisplay(const std::string& display) {
+//		this->display = display;
+//	}
+//	void setHost(const std::string& host) {
+//		this->host = host;
+//	}
+//	void showInfo() {
+//		std::cout << "电脑信息: \n";
+//		std::cout << cpu << " " << ram << " " << mouse << " " << keyboard << " " << display << " " << host << '\n';
+//	}
+//protected:
+//	std::string cpu, ram, mouse, keyboard, display, host;
+//};
+//
+//
+////抽象建造者：创建某个品牌的电脑， 并且需要具有一个返回当前产品的方法
+//class AbstractComputerBuilder {
+//public:
+//	virtual ~AbstractComputerBuilder() {}
+//	virtual void setMouse() = 0;
+//	virtual void setKeyboard() = 0;
+//	virtual void setDisplay() = 0;
+//	virtual void setHost() = 0;
+//
+//	virtual Computer* getProduct() = 0;
+//};
+//
+//
+////2. 具体建造者: 建造苹果电脑
+//class MacComputerBuilder :public AbstractComputerBuilder {
+//public:
+//	MacComputerBuilder(const std::string& cpu, const std::string& ram) {
+//		computer = new Computer(cpu, ram);
+//	}
+//	~MacComputerBuilder() {
+//		if (computer) {
+//			delete computer;
+//			computer = nullptr;
+//		}
+//	}
+//	void setMouse() {
+//		computer->setMouse("苹果鼠标");
+//	}
+//	void setKeyboard() {
+//		computer->setKeyboard("苹果键盘");
+//	}
+//	void setDisplay() {
+//		computer->setDisplay("苹果显示器");
+//	}
+//	void setHost() {
+//		computer->setHost("苹果主机");
+//	}
+//
+//	Computer* getProduct() {
+//		return computer;
+//	}
+//private:
+//	Computer* computer = nullptr;
+//};
+//
+////2. 具体建造者: 建造联想电脑 
+//class LenovoComputerBuilder :public AbstractComputerBuilder {
+//public:
+//	LenovoComputerBuilder(const std::string& cpu, const std::string& ram) {
+//		computer = new Computer(cpu, ram);
+//	}
+//	~LenovoComputerBuilder() {
+//		if (computer) {
+//			delete computer;
+//			computer = nullptr;
+//		}
+//	}
+//	void setMouse() {
+//		computer->setMouse("联想鼠标");
+//	}
+//	void setKeyboard() {
+//		computer->setKeyboard("联想键盘");
+//	}
+//	void setDisplay() {
+//		computer->setDisplay("联想显示器");
+//	}
+//	void setHost() {
+//		computer->setHost("联想主机");
+//	}
+//	Computer* getProduct() {
+//		return computer;
+//	}
+//private:
+//	Computer* computer = nullptr;
+//};
+//
+////5. 指挥者
+//class Director {
+//public:
+//	Director() {}
+//	Computer* createProduct(AbstractComputerBuilder* computer_worker) {
+//		//const std::string& mouse= "普通鼠标",
+//		//const std::string& display="普通显示器",
+//		//const std::string& keyboard="普通键盘",
+//		//const std::string& host="普通主机"
+//		computer_worker->setMouse();
+//		computer_worker->setDisplay();
+//		computer_worker->setKeyboard();
+//		computer_worker->setHost();
+//		//建造完成后返回产品
+//		return computer_worker->getProduct();
+//	}
+//};
+//int main() {
+//	//use smart pointer
+//	std::unique_ptr<AbstractComputerBuilder> builder(new LenovoComputerBuilder("I5处理器", "lemovoRam"));
+//	std::unique_ptr<Director> dmain(new Director);
+//	dmain->createProduct(builder.get())->showInfo();
+//
+//	builder.reset(new MacComputerBuilder("I7处理器", "海力士222"));
+//	Computer* mac = dmain->createProduct(builder.get());
+//	mac->showInfo();
+//
+//	return 0;
+//}

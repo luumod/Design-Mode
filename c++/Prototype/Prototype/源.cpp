@@ -57,5 +57,7 @@ int main() {
 	article3->add("新的内容2...");
 	article3->showContent();
 
+
+
 	return 0;
 }
